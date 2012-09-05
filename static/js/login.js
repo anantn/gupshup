@@ -1,9 +1,5 @@
 
 function prereqs() {
-  if (!navigator.id) {
-    redirect("Sorry, Persona could not be loaded!");
-    return;
-  }
   if (!navigator.mozGetUserMedia) {
     redirect("Sorry, getUserMedia is not available!");
     return;
@@ -14,24 +10,28 @@ function prereqs() {
   }
 
   // All pre-requisites available! TODO: Provide loggedInEmail param.
-  navigator.id.watch({
-    onlogin: function(ast) {
-      showLoader();
-      jQuery.post(
-        "login", {assertion: ast},
-        function() { window.location.reload(); }
-      ).error(function() { redirect("Login failed!"); });
-    },
-    onlogout: function() {
-      jQuery.post(
-        "logout", null,
-        function() { redirect("You have been logged out!", true); }
-      ).error(function() { redirect("Logout failed!"); });
-    }
-  });
+  if (navigator.id) {
+    navigator.id.watch({
+      onlogin: doLogin,
+      onlogout: function() {
+        jQuery.post(
+          "logout", null,
+          function() { redirect("You have been logged out!", true); }
+        ).error(function() { redirect("Logout failed!"); });
+      }
+    });
+  }
 
   // Enable the sign-in/sign-out button, if needed.
   showLogin();
+}
+
+function doLogin(ast) {
+  showLoader();
+  jQuery.post(
+    "login", {assertion: ast},
+    function() { window.location.reload(); }
+  ).error(function() { redirect("Login failed!"); });
 }
 
 function redirect(msg, force) {

@@ -23,8 +23,12 @@ app.get("/login", function(req, res) {
 
   // ejs complains about undefined variable?
   res.locals.message = "";
+  res.locals.offline = false;
   if (req.query.err) {
     res.locals.message = req.query.err;
+  }
+  if (process.env.OFFLINE) {
+    res.locals.offline = true;
   }
   res.render("login");
 });
@@ -38,6 +42,29 @@ app.get("/chat", function(req, res) {
   res.render("chat");
 });
 
+app.get("/events", function(req, res) {
+  if (!req.session.user) {
+    res.send(401, "Unauthorized, events access denied");
+    return;
+  }
+
+  // Setup event channel.
+  res.type("text/event-stream");
+  res.write("event: ping\n");
+  res.write("data: {}\n\n");
+
+  // First notify this user of all users current.
+  var keys = Object.keys(users);
+  for (var i = 0; i < keys.length; i++) {
+    var user = keys[i];
+    res.write("event: userjoined\n");
+    res.write("data: {'user':'" + user + "'}\n\n");
+  }
+
+  // Add to current list of online users.
+  users[req.session.user] = res;
+});
+
 app.post("/login", function(req, res) {
   if (!req.body.assertion) {
     res.send(500, "Invalid login request");
@@ -48,6 +75,7 @@ app.post("/login", function(req, res) {
     if (val) {
       req.session.regenerate(function() {
         req.session.user = val;
+        notifyAllAbout(val);
         res.send(200);
       });
     } else {
@@ -57,9 +85,12 @@ app.post("/login", function(req, res) {
 });
 
 app.post("/logout", function(req, res) {
-
+  req.session.destroy(function(){
+    res.send(200);
+  });
 });
 
+var users = {};
 var port = process.env.PORT || 5000;
 var audience = process.env.AUDIENCE || "http://gupshup.herokuapp.com";
 
@@ -73,7 +104,21 @@ function doRedirect(msg, res) {
   res.redirect("/login?err=" + encodeURIComponent(msg));
 }
 
+function notifyAllAbout(user) {
+  var keys = Object.keys(users);
+  for (var i = 0; i < keys.length; i++) {
+    var channel = users[keys[i]];
+    channel.write("event: userjoined\n");
+    channel.write("data: {'user':'" + user + "'}\n\n");
+  }
+}
+
 function verifyAssertion(ast, aud, cb) {
+  if (process.env.OFFLINE) {
+    cb(ast);
+    return;
+  }
+
   var data = "audience=" + encodeURIComponent(aud);
   data += "&assertion=" + encodeURIComponent(ast);
 
