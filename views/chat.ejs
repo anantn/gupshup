@@ -24,17 +24,38 @@
       </div>
     </div>
 
-    <div class="container">
+    <div id="main" class="container">
 
-      <div class="hero-unit">
-        <h1>[ˈɡʌpʃʌp] n.,</h1>
-        <p>&nbsp;</p>
-        <p>
-          Welcome <i><%= user %></i>!<br/>
-          Click on any online user to initiate a chat.
-        </p>
+      <div class="span4">
+        <h3>Welcome <span id="user"><%= user %></span>!</h3>
+        <p>Click on any online user to initiate a chat.</p>
       </div>
 
+      <br/>
+
+      <div class="span2 well" id="users">
+      </div>
+
+    </div>
+
+    <div id="call" class="container" style="display: none;">
+      <span id="dialing">
+        <img src="img/loading.gif"/>
+        <b>Dialing...</b>
+      </span>
+      <span id="hangup" style="display: none;">
+        <a class="btn btn-danger" onclick="endCall();">Hang Up</a>
+      </span>
+      <span>
+        <h3>Remote</h3>
+        <video width="640" height="480" id="remotevideo" controls/>
+        <audio id="remoteaudio"/>
+      </span>
+      <span>
+        <h3>Local</h3>
+        <video width="320" height="240" id="localvideo" controls/>
+        <audio id="localaudio" muted/>
+      </span>
     </div>
 
     <script src="https://login.persona.org/include.js"></script>

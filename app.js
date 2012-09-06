@@ -51,18 +51,42 @@ app.get("/events", function(req, res) {
   // Setup event channel.
   res.type("text/event-stream");
   res.write("event: ping\n");
-  res.write("data: {}\n\n");
+  res.write("data: ping\n\n");
 
   // First notify this user of all users current.
   var keys = Object.keys(users);
   for (var i = 0; i < keys.length; i++) {
     var user = keys[i];
     res.write("event: userjoined\n");
-    res.write("data: {'user':'" + user + "'}\n\n");
+    res.write("data: " + user + "\n\n");
   }
 
   // Add to current list of online users.
   users[req.session.user] = res;
+});
+
+app.post("/offer", function(req, res) {
+  if (!req.session.user) {
+    res.send(401, "Unauthorized, offer access denied");
+    return;
+  }
+
+  if (!req.body.to || !req.body.offer) {
+    res.send(400, "Invalid offer request");
+    return;
+  }
+
+  var channel = users[req.body.to];
+  if (!channel) {
+    res.send(400, "Invalid user for offer");
+    return;
+  }
+
+  channel.write("event: offer\n");
+  channel.write("data: " + req.body.offer);
+  channel.write("\n\n");
+
+  res.send(200);
 });
 
 app.post("/login", function(req, res) {
@@ -109,7 +133,7 @@ function notifyAllAbout(user) {
   for (var i = 0; i < keys.length; i++) {
     var channel = users[keys[i]];
     channel.write("event: userjoined\n");
-    channel.write("data: {'user':'" + user + "'}\n\n");
+    channel.write("data: " + user + "\n\n");
   }
 }
 
