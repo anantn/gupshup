@@ -16,7 +16,7 @@ function prereqs() {
       onlogout: function() {
         jQuery.post(
           "logout", null,
-          function() { redirect("You have been logged out!", true); }
+          function() { redirect("You have been logged out!"); }
         ).error(function() { redirect("Logout failed!"); });
       }
     });

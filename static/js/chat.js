@@ -1,7 +1,16 @@
 
+if (!console || !console.log) {
+  var console = {
+    log: function() {}
+  };
+}
+
 // Ugh, globals.
 var peerc;
 var source = new EventSource("events");
+
+$("#incomingCall").modal();
+$("#incomingCall").modal("hide");
 
 source.addEventListener("ping", function(e) {}, false);
 
@@ -15,7 +24,6 @@ source.addEventListener("userleft", function(e) {
 
 source.addEventListener("offer", function(e) {
   var offer = JSON.parse(e.data);
-
   document.getElementById("incomingUser").innerHTML = offer.from;
   document.getElementById("incomingAccept").onclick = function() {
     $("#incomingCall").modal("hide");
@@ -26,7 +34,7 @@ source.addEventListener("offer", function(e) {
 
 source.addEventListener("answer", function(e) {
   var answer = JSON.parse(e.data);
-  peerc.setRemoteDescription(answer.answer, function() {
+  peerc.setRemoteDescription(JSON.parse(answer.answer), function() {
     console.log("Call established!");
   }, error);
 }, false);
@@ -79,8 +87,8 @@ function acceptCall(offer) {
         document.getElementById("hangup").style.display = "block";
       };
 
-      pc.setRemoteDescription(offer.offer, function() {
-        pc.createAnswer(offer.offer, function(answer) {
+      pc.setRemoteDescription(JSON.parse(offer.offer), function() {
+        pc.createAnswer(JSON.parse(offer.offer), function(answer) {
           pc.setLocalDescription(answer, function() {
             // Send answer to remote end.
             peerc = pc;

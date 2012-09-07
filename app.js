@@ -83,7 +83,7 @@ app.post("/offer", function(req, res) {
   }
 
   channel.write("event: offer\n");
-  channel.write("data: " + req.body.offer);
+  channel.write("data: " + JSON.stringify(req.body));
   channel.write("\n\n");
 
   res.send(200);
@@ -108,7 +108,7 @@ app.post("/answer", function(req, res) {
   }
 
   channel.write("event: answer\n");
-  channel.write("data: " + req.body.answer);
+  channel.write("data: " + JSON.stringify(req.body));
   channel.write("\n\n");
 
   res.send(200);
