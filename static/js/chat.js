@@ -80,8 +80,10 @@ function acceptCall(offer) {
       pc.onRemoteStreamAdded = function(obj) {
         if (obj.type == "video") {
           document.getElementById("remotevideo").src = obj.stream;
+          document.getElementById("remotevideo").play();
         } else {
           document.getElementById("remoteaudio").src = obj.stream;
+          document.getElementById("remoteaudio").play();
         }
         document.getElementById("dialing").style.display = "none";
         document.getElementById("hangup").style.display = "block";
@@ -126,8 +128,10 @@ function initiateCall(user) {
       pc.onRemoteStreamAdded = function(obj) {
         if (obj.type == "video") {
           document.getElementById("remotevideo").src = obj.stream;
+          document.getElementById("remotevideo").play();
         } else {
           document.getElementById("remoteaudio").src = obj.stream;
+          document.getElementById("remoteaudio").play();
         }
         document.getElementById("dialing").style.display = "none";
         document.getElementById("hangup").style.display = "block";
@@ -154,6 +158,18 @@ function initiateCall(user) {
 function endCall() {
   document.getElementById("call").style.display = "none";
   document.getElementById("main").style.display = "block";
+
+  document.getElementById("localvideo").pause();
+  document.getElementById("localaudio").pause();
+  document.getElementById("remotevideo").pause();
+  document.getElementById("remoteaudio").pause();
+
+  document.getElementById("localvideo").src = null;
+  document.getElementById("localaudio").src = null;
+  document.getElementById("remotevideo").src = null;
+  document.getElementById("remoteaudio").src = null;
+
+  peerc = null;
 }
 
 function error(e) {
