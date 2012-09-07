@@ -36,6 +36,21 @@
       <div class="span2 well" id="users">
       </div>
 
+      <div class="modal" id="incomingCall" tabindex="-1" role="dialog"
+           aria-labelledby="incomingCall" aria-hidden="true">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h3>Incoming Call!</h3>
+        </div>
+        <div class="modal-body">
+          <p>You have an incoming call from <span id="incomingUser"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" data-dismiss="modal" aria-hidden="true">Reject</button>
+          <button id="incomingAccept" class="btn btn-primary">Accept</button>
+        </div>
+      </div>
+
     </div>
 
     <div id="call" class="container" style="display: none;">

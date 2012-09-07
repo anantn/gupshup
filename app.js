@@ -71,7 +71,7 @@ app.post("/offer", function(req, res) {
     return;
   }
 
-  if (!req.body.to || !req.body.offer) {
+  if (!req.body.to || !req.body.from || !req.body.offer) {
     res.send(400, "Invalid offer request");
     return;
   }
@@ -84,6 +84,31 @@ app.post("/offer", function(req, res) {
 
   channel.write("event: offer\n");
   channel.write("data: " + req.body.offer);
+  channel.write("\n\n");
+
+  res.send(200);
+});
+
+// TODO: refactor, this is almost a duplicate of post("offer").
+app.post("/answer", function(req, res) {
+  if (!req.session.user) {
+    res.send(401, "Unauthorized, answer access denied");
+    return;
+  }
+
+  if (!req.body.to || !req.body.from || !req.body.answer) {
+    res.send(400, "Invalid offer request");
+    return;
+  }
+
+  var channel = users[req.body.to];
+  if (!channel) {
+    res.send(400, "Invalid user for answer");
+    return;
+  }
+
+  channel.write("event: answer\n");
+  channel.write("data: " + req.body.answer);
   channel.write("\n\n");
 
   res.send(200);
