@@ -12,6 +12,10 @@ var source = new EventSource("events");
 $("#incomingCall").modal();
 $("#incomingCall").modal("hide");
 
+$("#incomingCall").on("hidden", function() {
+  document.getElementById("incomingRing").pause();
+});
+
 source.addEventListener("ping", function(e) {}, false);
 
 source.addEventListener("userjoined", function(e) {
@@ -30,6 +34,7 @@ source.addEventListener("offer", function(e) {
     acceptCall(offer);
   };
   $("#incomingCall").modal();
+  document.getElementById("incomingRing").play();
 }, false);
 
 source.addEventListener("answer", function(e) {
