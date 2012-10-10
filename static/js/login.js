@@ -4,7 +4,7 @@ function prereqs() {
     redirect("Sorry, getUserMedia is not available!");
     return;
   }
-  if (!window.mozPeerConnection) {
+  if (!window.mozRTCPeerConnection) {
     redirect("Sorry, PeerConnection is not available!");
     return;
   }

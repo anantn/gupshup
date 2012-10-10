@@ -71,23 +71,23 @@ function acceptCall(offer) {
   document.getElementById("call").style.display = "block";
 
   navigator.mozGetUserMedia({video:true}, function(vs) {
-    document.getElementById("localvideo").src = vs;
+    document.getElementById("localvideo").mozSrcObject = vs;
     document.getElementById("localvideo").play();
 
     navigator.mozGetUserMedia({audio:true}, function(as) {
-      document.getElementById("localaudio").src = as;
+      document.getElementById("localaudio").mozSrcObject = as;
       document.getElementById("localaudio").play();
 
-      var pc = new mozPeerConnection();
+      var pc = new mozRTCPeerConnection();
       pc.addStream(vs);
       pc.addStream(as);
 
-      pc.onRemoteStreamAdded = function(obj) {
+      pc.onaddstream = function(obj) {
         if (obj.type == "video") {
-          document.getElementById("remotevideo").src = obj.stream;
+          document.getElementById("remotevideo").mozSrcObject = obj.stream;
           document.getElementById("remotevideo").play();
         } else {
-          document.getElementById("remoteaudio").src = obj.stream;
+          document.getElementById("remoteaudio").mozSrcObject = obj.stream;
           document.getElementById("remoteaudio").play();
         }
         document.getElementById("dialing").style.display = "none";
@@ -119,23 +119,23 @@ function initiateCall(user) {
   document.getElementById("call").style.display = "block";
 
   navigator.mozGetUserMedia({video:true}, function(vs) {
-    document.getElementById("localvideo").src = vs;
+    document.getElementById("localvideo").mozSrcObject = vs;
     document.getElementById("localvideo").play();
 
     navigator.mozGetUserMedia({audio:true}, function(as) {
-      document.getElementById("localaudio").src = as;
+      document.getElementById("localaudio").mozSrcObject = as;
       document.getElementById("localaudio").play();
 
-      var pc = new mozPeerConnection();
+      var pc = new mozRTCPeerConnection();
       pc.addStream(vs);
       pc.addStream(as);
 
-      pc.onRemoteStreamAdded = function(obj) {
+      pc.onaddstream = function(obj) {
         if (obj.type == "video") {
-          document.getElementById("remotevideo").src = obj.stream;
+          document.getElementById("remotevideo").mozSrcObject = obj.stream;
           document.getElementById("remotevideo").play();
         } else {
-          document.getElementById("remoteaudio").src = obj.stream;
+          document.getElementById("remoteaudio").mozSrcObject = obj.stream;
           document.getElementById("remoteaudio").play();
         }
         document.getElementById("dialing").style.display = "none";

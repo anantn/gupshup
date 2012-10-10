@@ -23,12 +23,12 @@ app.get("/login", function(req, res) {
 
   // ejs complains about undefined variable?
   res.locals.message = "";
-  res.locals.offline = false;
+  res.locals.offline = true;
   if (req.query.err) {
     res.locals.message = req.query.err;
   }
-  if (process.env.OFFLINE) {
-    res.locals.offline = true;
+  if (process.env.ONLINE) {
+    res.locals.offline = false;
   }
   res.render("login");
 });
@@ -163,7 +163,7 @@ function notifyAllAbout(user) {
 }
 
 function verifyAssertion(ast, aud, cb) {
-  if (process.env.OFFLINE) {
+  if (!process.env.ONLINE) {
     cb(ast);
     return;
   }
