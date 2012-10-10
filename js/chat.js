@@ -7,71 +7,128 @@ if (!console || !console.log) {
 
 // Ugh, globals.
 var peerc;
-var source = new EventSource("events");
+var myUserID;
+var mainRef = new Firebase("https://gamma.firebase.com/kix/gupshup/");
 
 $("#incomingCall").modal();
 $("#incomingCall").modal("hide");
+
+function prereqs() {
+  if (!navigator.mozGetUserMedia) {
+    error("Sorry, getUserMedia is not available! (Did you set media.navigator.enabled?)");
+    return;
+  }
+  if (!window.mozRTCPeerConnection) {
+    error("Sorry, PeerConnection is not available! (Did you set media.peerconnection.enabled?)");
+    return;
+  }
+
+  // Ask user to login.
+  var name = prompt("Enter your username", "Guest" + Math.floor(Math.random()*100)+1);
+
+  // Set username & welcome.
+  document.getElementById("username").innerHTML = name;
+  document.getElementById("welcome").style.display = "block";
+
+  myUserID = btoa(name);
+  var userRef = mainRef.child(myUserID);
+  var userSDP = userRef.child("sdp");
+  var userStatus = userRef.child("presence");
+
+  userSDP.setOnDisconnect(null);
+  userStatus.setOnDisconnect(false);
+
+  $(window).unload(function() {
+    userSDP.set(null);
+    userStatus.set(false);
+  });
+
+  // Now online.
+  userStatus.set(true);
+
+  mainRef.on("child_added", function(snapshot) {
+    var data = snapshot.val();
+    if (data.presence) {
+      appendUser(snapshot.name());
+    }
+  });
+
+  mainRef.on("child_changed", function(snapshot) {
+    var data = snapshot.val();
+    if (data.presence) {
+      removeUser(snapshot.name());
+      appendUser(snapshot.name());
+    }
+    if (!data.presence) {
+      removeUser(snapshot.name());
+    }
+    if (data.sdp && data.sdp.to == myUserID) {
+      if (data.sdp.type == "offer") {
+        incomingOffer(data.sdp.offer, data.sdp.from)
+        userSDP.set(null);
+      }
+      if (data.sdp.type == "answer") {
+        incomingAnswer(data.sdp.answer);
+        userSDP.set(null);
+      }
+    }
+  });
+}
+
+function error(msg) {
+  document.getElementById("message").innerHTML = msg;
+  document.getElementById("alert").style.display = "block";
+}
 
 $("#incomingCall").on("hidden", function() {
   document.getElementById("incomingRing").pause();
 });
 
-source.addEventListener("ping", function(e) {}, false);
-
-source.addEventListener("userjoined", function(e) {
-  appendUser(e.data);
-}, false);
-
-source.addEventListener("userleft", function(e) {
-  removeUser(e.data);
-}, false);
-
-source.addEventListener("offer", function(e) {
-  var offer = JSON.parse(e.data);
-  document.getElementById("incomingUser").innerHTML = offer.from;
+function incomingOffer(offer, fromUser) {
+  document.getElementById("incomingUser").innerHTML = atob(fromUser);
   document.getElementById("incomingAccept").onclick = function() {
     $("#incomingCall").modal("hide");
-    acceptCall(offer);
+    acceptCall(offer, fromUser);
   };
   $("#incomingCall").modal();
   document.getElementById("incomingRing").play();
-}, false);
+};
 
-source.addEventListener("answer", function(e) {
-  var answer = JSON.parse(e.data);
-  peerc.setRemoteDescription(JSON.parse(answer.answer), function() {
-    console.log("Call established!");
+function incomingAnswer(answer) {
+  peerc.setRemoteDescription(JSON.parse(answer), function() {
+    log("Call established!");
   }, error);
-}, false);
+};
 
 function log(info) {
   var d = document.getElementById("debug");
   d.innerHTML += info + "\n\n";
 }
 
-function appendUser(user) {
+function appendUser(userid) {
+  if (userid == myUserID) return;
   var d = document.createElement("div");
-  d.setAttribute("id", btoa(user));
+  d.setAttribute("id", userid);
 
   var a = document.createElement("a");
   a.setAttribute("class", "btn btn-block btn-inverse");
-  a.setAttribute("onclick", "initiateCall('" + user + "');");
-  a.innerHTML = "<i class='icon-user icon-white'></i> " + user;
+  a.setAttribute("onclick", "initiateCall('" + userid + "');");
+  a.innerHTML = "<i class='icon-user icon-white'></i> " + atob(userid);
 
   d.appendChild(a);
   d.appendChild(document.createElement("br"));
   document.getElementById("users").appendChild(d);
 }
 
-function removeUser(user) {
-  var d = document.getElementById(btoa(user));
+function removeUser(userid) {
+  var d = document.getElementById(userid);
   if (d) {
     document.getElementById("users").removeChild(d);
   }
 }
 
 // TODO: refactor, this function is almost identical to initiateCall().
-function acceptCall(offer) {
+function acceptCall(offer, fromUser) {
   log("Incoming call with offer " + offer);
   document.getElementById("main").style.display = "none";
   document.getElementById("call").style.display = "block";
@@ -101,21 +158,22 @@ function acceptCall(offer) {
         document.getElementById("hangup").style.display = "block";
       };
 
-      pc.setRemoteDescription(JSON.parse(offer.offer), function() {
+      pc.setRemoteDescription(JSON.parse(offer), function() {
         log("setRemoteDescription, creating answer");
-        pc.createAnswer(JSON.parse(offer.offer), function(answer) {
+        pc.createAnswer(JSON.parse(offer), function(answer) {
           pc.setLocalDescription(answer, function() {
             // Send answer to remote end.
             log("created Answer and setLocalDescription " + JSON.stringify(answer));
             peerc = pc;
-            jQuery.post(
-              "answer", {
-                to: offer.from,
-                from: offer.to,
-                answer: JSON.stringify(answer)
-              },
-              function() { console.log("Answer sent!"); }
-            ).error(error);
+            var toSend = {
+              type: "answer",
+              to: fromUser,
+              from: myUserID,
+              answer: JSON.stringify(answer)
+            };
+            var toUser = mainRef.child(toSend.to);
+            var toUserSDP = toUser.child("sdp");
+            toUserSDP.set(toSend);
           }, error);
         }, error);
       }, error);
@@ -123,7 +181,7 @@ function acceptCall(offer) {
   }, error);
 }
 
-function initiateCall(user) {
+function initiateCall(userid) {
   document.getElementById("main").style.display = "none";
   document.getElementById("call").style.display = "block";
 
@@ -158,14 +216,15 @@ function initiateCall(user) {
           // Send offer to remote end.
           log("setLocalDescription, sending to remote");
           peerc = pc;
-          jQuery.post(
-            "offer", {
-              to: user,
-              from: document.getElementById("user").innerHTML,
-              offer: JSON.stringify(offer)
-            },
-            function() { console.log("Offer sent!"); }
-          ).error(error);
+          var toSend = {
+            type: "offer",
+            to: userid,
+            from: myUserID,
+            offer: JSON.stringify(offer)
+          };
+          var toUser = mainRef.child(toSend.to);
+          var toUserSDP = toUser.child("sdp");
+          toUserSDP.set(toSend);
         }, error);
       }, error);
     }, error);
@@ -198,3 +257,6 @@ function error(e) {
   }
   endCall();
 }
+
+prereqs();
+

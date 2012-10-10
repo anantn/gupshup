@@ -12,6 +12,8 @@
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <script type="text/javascript" src="https://www.firebase.com/js/libs/idle.js"></script>
+    <script src="https://static.firebase.com/v0/firebase.js"></script>
   </head>
 
   <body>
@@ -26,8 +28,14 @@
 
     <div id="main" class="container">
 
-      <div class="span4">
-        <h3>Welcome <span id="user"><%= user %></span>!</h3>
+      <div id="alert" class="alert alert-block alert-error" style="display:none;">
+        <h4 class="alert-heading" id="message"></h4>
+      </div>
+
+      <div id="mainContainer">
+
+      <div id="welcome" class="span4" style="display:none;">
+        <h3>Welcome <span id="username"></span>!</h3>
         <p>Click on any online user to initiate a chat.</p>
       </div>
 
@@ -53,6 +61,7 @@
         </div>
       </div>
 
+      </div> <!-- mainContainer -->
     </div>
 
     <div id="call" class="container" style="display: none;">
@@ -81,8 +90,6 @@
       <br/>
       <pre id="debug" class="collapse in"></pre>
     </div>
-
-    <script src="https://login.persona.org/include.js"></script>
 
     <script src="js/jquery.js"></script>
     <script src="js/bootstrap.js"></script>
