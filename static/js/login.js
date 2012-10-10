@@ -1,11 +1,11 @@
 
 function prereqs() {
   if (!navigator.mozGetUserMedia) {
-    redirect("Sorry, getUserMedia is not available!");
+    redirect("Sorry, getUserMedia is not available! (Did you set media.navigator.enabled?)");
     return;
   }
   if (!window.mozRTCPeerConnection) {
-    redirect("Sorry, PeerConnection is not available!");
+    redirect("Sorry, PeerConnection is not available! (Did you set media.peerconnection.enabled?)");
     return;
   }
 

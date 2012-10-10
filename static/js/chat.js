@@ -44,6 +44,11 @@ source.addEventListener("answer", function(e) {
   }, error);
 }, false);
 
+function log(info) {
+  var d = document.getElementById("debug");
+  d.innerHTML += info + "\n\n";
+}
+
 function appendUser(user) {
   var d = document.createElement("div");
   d.setAttribute("id", btoa(user));
@@ -67,6 +72,7 @@ function removeUser(user) {
 
 // TODO: refactor, this function is almost identical to initiateCall().
 function acceptCall(offer) {
+  log("Incoming call with offer " + offer);
   document.getElementById("main").style.display = "none";
   document.getElementById("call").style.display = "block";
 
@@ -83,6 +89,7 @@ function acceptCall(offer) {
       pc.addStream(as);
 
       pc.onaddstream = function(obj) {
+        log("Got onaddstream of type " + obj.type);
         if (obj.type == "video") {
           document.getElementById("remotevideo").mozSrcObject = obj.stream;
           document.getElementById("remotevideo").play();
@@ -95,9 +102,11 @@ function acceptCall(offer) {
       };
 
       pc.setRemoteDescription(JSON.parse(offer.offer), function() {
+        log("setRemoteDescription, creating answer");
         pc.createAnswer(JSON.parse(offer.offer), function(answer) {
           pc.setLocalDescription(answer, function() {
             // Send answer to remote end.
+            log("created Answer and setLocalDescription " + JSON.stringify(answer));
             peerc = pc;
             jQuery.post(
               "answer", {
@@ -131,6 +140,7 @@ function initiateCall(user) {
       pc.addStream(as);
 
       pc.onaddstream = function(obj) {
+        log("Got onaddstream of type " + obj.type);
         if (obj.type == "video") {
           document.getElementById("remotevideo").mozSrcObject = obj.stream;
           document.getElementById("remotevideo").play();
@@ -143,8 +153,10 @@ function initiateCall(user) {
       };
 
       pc.createOffer(function(offer) {
+        log("Created offer" + JSON.stringify(offer));
         pc.setLocalDescription(offer, function() {
           // Send offer to remote end.
+          log("setLocalDescription, sending to remote");
           peerc = pc;
           jQuery.post(
             "offer", {
@@ -161,6 +173,7 @@ function initiateCall(user) {
 }
 
 function endCall() {
+  log("Ending call");
   document.getElementById("call").style.display = "none";
   document.getElementById("main").style.display = "block";
 
@@ -178,6 +191,10 @@ function endCall() {
 }
 
 function error(e) {
-  alert("Oh no! " + e);
+  if (typeof e == typeof {}) {
+    alert("Oh no! " + JSON.stringify(e));
+  } else {
+    alert("Oh no! " + e);
+  }
   endCall();
 }
