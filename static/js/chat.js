@@ -103,7 +103,7 @@ function acceptCall(offer) {
 
       pc.setRemoteDescription(JSON.parse(offer.offer), function() {
         log("setRemoteDescription, creating answer");
-        pc.createAnswer(JSON.parse(offer.offer), function(answer) {
+        pc.createAnswer(function(answer) {
           pc.setLocalDescription(answer, function() {
             // Send answer to remote end.
             log("created Answer and setLocalDescription " + JSON.stringify(answer));
