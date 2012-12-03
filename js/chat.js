@@ -8,7 +8,7 @@ if (!console || !console.log) {
 // Ugh, globals.
 var peerc;
 var myUserID;
-var mainRef = new Firebase("https://gamma.firebase.com/kix/gupshup/");
+var mainRef = new Firebase("https://kix.firebaseio.com/gupshup/");
 
 $("#incomingCall").modal();
 $("#incomingCall").modal("hide");
