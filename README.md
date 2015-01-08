@@ -1,3 +1,5 @@
+This demo is outdated and is no longer being updated. For a more recent example, see [AppRTC](https://github.com/GoogleChrome/webrtc/tree/master/samples/web/content/apprtc)
+
 Gupshup
 =======
 
